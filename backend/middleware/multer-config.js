@@ -2,6 +2,7 @@
 const multer = require('multer');
 const jwt = require("jsonwebtoken");
 
+//Création d'un objet faisant correspondre les mimetypes acceptés avec les extensions
 const MIME_TYPES = {
     'image/jpg': 'jpg',
     'image/jpeg': 'jpg',
@@ -13,10 +14,13 @@ const MIME_TYPES = {
     'image/webp': 'webp',
 }
 
+//Paramétrage de la destination et du nom du fichier
 const storage = multer.diskStorage({
+    //Définition du dossier destination
     destination: function (req, file, callback) {
         callback(null, 'images');
     },
+    //Définition du nom à attribuer
     filename: function (req, file, callback) {
         const name = file.originalname.split(' ').join('_');
         const extension = MIME_TYPES[file.mimetype];
@@ -24,6 +28,7 @@ const storage = multer.diskStorage({
     },
 });
 
+//Paramétrage des filtres à appliquer à réception du fichier
 const filter = (req, file, callback) => {
     if (file.mimetype in MIME_TYPES) {
         callback(null, true)
@@ -32,11 +37,13 @@ const filter = (req, file, callback) => {
     }
 };
 
+//Capture du fichier avec les paramètres définis ci-dessus
 const upload = multer({
     storage: storage,
     fileFilter : filter
 });
 
+//Middleware de téléchargement du fichier
 module.exports = (req, res, next) => {
     upload.single('image')(req, res, function (error) {
         if (error) {

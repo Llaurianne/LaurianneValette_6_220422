@@ -13,6 +13,7 @@ const port = normalizePort(process.env.PORT || '3000');
 //L'application tourne sur le port défini ci-dessus
 app.set('port', port);
 
+//Gestion des erreurs
 const errorHandler = error => {
     if (error.syscall !== 'listen') {throw error}
     const address = server.address();
@@ -31,9 +32,10 @@ const errorHandler = error => {
     }
 };
 
-//Création du serveur, et appel de la fonction app à chaque requête
+//Création du serveur, et exécution de app à chaque requête
 const server = http.createServer(app);
 
+//Affichage de l'état du seveur dans la console du backend
 server.on('error', errorHandler);
 server.on('listening', () => {
     const address = server.address();
