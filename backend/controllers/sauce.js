@@ -1,3 +1,4 @@
+//Import du contenu extérieur : modules et fichiers
 const Sauce = require("../models/Sauce");
 const fs = require('fs');
 
@@ -37,12 +38,12 @@ exports.modifySauce = (req, res, next) => {
     Sauce.findOne({_id: req.params.id})
         .then((sauce) => {
             if (sauce.userId !== req.auth.userId) {
-                return res.status(403).json({
-                    error: new Error('Unauthorized request')
-                });
+                return res.status(403).json({ error : "Unauthorized request"});
             }
             Sauce.updateOne({_id: req.params.id }, {...sauceObject, _id: req.params.id})
-                .then(() => res.status(201).json({message: 'Sauce updated successfully!'}))
+                .then(() => {
+                    res.status(201).json({message: 'Sauce updated successfully!'})
+                })
                 .catch(error => res.status(400).json({error}));
         })
         .catch(error => res.status(404).json({error}));
@@ -56,14 +57,10 @@ exports.deleteSauce = (req, res, next) => {
                 Sauce.findOne({_id: req.params.id})
                     .then((sauce) => {
                         if (!sauce) {
-                            return res.status(404).json({
-                                error: new Error('Sauce not found')
-                            });
+                            return res.status(404).json({error: 'Sauce not found'});
                         }
                         if (sauce.userId !== req.auth.userId) {
-                            return res.status(401).json({
-                                error: new Error('Request forbidden')
-                            });
+                            return res.status(401).json({error: new Error('Request forbidden')});
                         }
 
                         Sauce.deleteOne({_id: req.params.id})
@@ -80,37 +77,44 @@ exports.deleteSauce = (req, res, next) => {
 exports.likeSauce = (req, res, next) => {
     switch (req.body.like) {
         case -1 :
-            Sauce.updateOne(
-                {_id: req.params.id},
-                {
-                    $inc: { dislikes: 1 },
-                    $push: { usersDisliked: req.body.userId },
-                    _id: req.params.id}
-            )
-                .then(() => res.status(200).json({message: 'Dislike added!'}))
-                .catch(error => res.status(400).json({error}))
+            Sauce.findOne({_id: req.params.id})
+                .then( sauce => {
+                    if (sauce.usersDisliked.includes(req.body.userId)) {
+                        res.status(208).json({error : "Sauce already disliked"})
+                    } else if (sauce.usersLiked.includes(req.body.userId)) {
+                        res.status(208).json({error : "Sauce cannot be liked and disliked at the same time"})
+                    } else {
+                        Sauce.updateOne(
+                            {_id: req.params.id},
+                            {
+                                $inc: { dislikes: 1 },
+                                $push: { usersDisliked: req.body.userId },}
+                        )
+                            .then(() => res.status(200).json({message: 'Dislike added!'}))
+                            .catch(error => res.status(400).json({error}))
+                    }
+                })
+                .catch(error => res.status(404).json({error}))
             break;
         case 0 :
             Sauce.findOne({_id: req.params.id})
                 .then( sauce => {
-                    if ( sauce.usersLiked.find(user => user === req.body.userId)) {
+                    if ( sauce.usersLiked.includes(req.body.userId)) {
                         Sauce.updateOne(
                             {_id: req.params.id},
                             {
                                 $inc: { likes: -1 },
                                 $pull: { usersLiked: req.body.userId },
-                                _id: req.params.id
                             }
                         )
                             .then(() => res.status(200).json({message: 'Like canceled!'}))
                             .catch(error => res.status(400).json({error}))
-                    } else if (sauce.usersDisliked.find(user => user === req.body.userId)) {
+                    } else if (sauce.usersDisliked.includes(req.body.userId)) {
                         Sauce.updateOne(
                             {_id: req.params.id},
                             {
                                 $inc: { dislikes: -1 },
                                 $pull: { usersDisliked: req.body.userId },
-                                _id: req.params.id
                             }
                         )
                             .then(() => res.status(200).json({message: 'Dislike canceled!'}))
@@ -121,15 +125,25 @@ exports.likeSauce = (req, res, next) => {
 
             break;
         case 1 :
-            Sauce.updateOne(
-                {_id: req.params.id},
-                {
-                    $inc: { likes: 1 },
-                    $push: { usersLiked: req.body.userId },
-                    _id: req.params.id}
-            )
-                .then(() => res.status(200).json({message: 'Like added!'}))
-                .catch(error => res.status(400).json({error}))
+            Sauce.findOne({_id: req.params.id})
+                .then( sauce => {
+                    if (sauce.usersLiked.includes(req.body.userId)) {
+                        res.status(208).json({error : "Sauce already liked"})
+                    } else if (sauce.usersDisliked.includes(req.body.userId)) {
+                        res.status(208).json({error : "Sauce cannot be liked and disliked at the same time"})
+                    } else {
+                        Sauce.updateOne(
+                            {_id: req.params.id},
+                            {
+                                $inc: {likes: 1},
+                                $push: {usersLiked: req.body.userId},
+                            }
+                        )
+                            .then(() => res.status(200).json({message: 'Like added!'}))
+                            .catch(error => res.status(400).json({error}))
+                    }
+                })
+                .catch(error => res.status(404).json({error}))
             break;
     }
 }

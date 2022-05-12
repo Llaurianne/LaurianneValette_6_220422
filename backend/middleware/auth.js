@@ -1,3 +1,4 @@
+//Import du contenu extérieur : modules et fichiers
 const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
@@ -7,12 +8,11 @@ module.exports = (req, res, next) => {
         const userId = decodedToken.userId;
         req.auth = { userId };
         if (req.body.userId && req.body.userId !== userId) {
-            throw "coucou";
+            throw "User not authorized";
         } else {
             next();
         }
     } catch (error) {
-        res.status(401).json({ error : error});
+        res.status(401).json({error : error});
     }
 };
-

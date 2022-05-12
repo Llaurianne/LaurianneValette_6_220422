@@ -1,5 +1,7 @@
+//Import du contenu extérieur : modules et fichiers
 const mongoose = require('mongoose');
 
+//Définition du schéma sauce
 const sauceSchema = mongoose.Schema({
     userId: { type: String, required: true },
     name: { type: String, required: true },
@@ -14,4 +16,5 @@ const sauceSchema = mongoose.Schema({
     usersDisliked: { type: [String], required: false },
 });
 
+//Export du schéma
 module.exports = mongoose.model('Sauce', sauceSchema);

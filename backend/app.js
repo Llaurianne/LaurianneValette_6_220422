@@ -1,9 +1,12 @@
+//Import du contenu extérieur : modules et fichiers
 const mongoose = require('mongoose');
 const express = require('express');
-const app = express();
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 const path = require('path');
+
+//Création de l'application Express
+const app = express();
 
 mongoose.connect('mongodb+srv://admin:81otKOYKfei1FV4D@cluster0.eb8oj.mongodb.net/database?retryWrites=true&w=majority',
     { useNewUrlParser: true,
